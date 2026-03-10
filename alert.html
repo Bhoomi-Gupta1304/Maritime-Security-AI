@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alerts – Mission Control</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:radial-gradient(ellipse at top,#0f1c30,#050b16 70%);
+    color:#e2e8f0;
+    height:100vh;
+    overflow:hidden;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:24px 28px;
+}
+
+.logo-icon{
+    width:36px;
+    height:36px;
+    background:linear-gradient(135deg,#0ea5e9,#06b6d4);
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+}
+
+.logo-text h1{font-size:16px}
+.logo-text p{font-size:11px;color:#06b6d4}
+
+/* ================= MAIN ================= */
+.main{
+    display:flex;
+    height:calc(100vh - 94px);
+}
+
+/* LEFT PANEL */
+.left{
+    width:360px;
+    border-right:1px solid #1e293b;
+    padding:16px;
+    overflow-y:auto;
+}
+
+.alert{
+    background:linear-gradient(135deg,#1e293b,#0f172a);
+    border:1px solid #334155;
+    border-left:4px solid;
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:12px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.alert:hover{
+    background:rgba(14,165,233,.08);
+    border-color:#0ea5e9;
+}
+
+.alert.active{
+    background:rgba(14,165,233,.15);
+    border-color:#0ea5e9;
+}
+
+.alert.critical{border-left-color:#ef4444}
+.alert.high{border-left-color:#f97316}
+.alert.medium{border-left-color:#eab308}
+.alert.low{border-left-color:#22c55e}
+
+.alert strong{
+    font-size:14px;
+    color:#f1f5f9;
+}
+
+.alert small{
+    color:#94a3b8;
+    font-size:12px;
+}
+
+/* RIGHT PANEL */
+.right{
+    flex:1;
+    padding:24px;
+    overflow-y:auto;
+}
+
+.details h2{
+    margin-bottom:8px;
+    font-size:24px;
+    color:#f1f5f9;
+}
+
+.details small{
+    color:#94a3b8;
+}
+
+.details small b{
+    color:#ef4444;
+}
+
+.meta{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    margin:16px 0;
+}
+
+.box{
+    background:linear-gradient(135deg,#1e293b,#0f172a);
+    border:1px solid #334155;
+    padding:12px;
+    border-radius:8px;
+}
+
+.box small{
+    color:#64748b;
+    font-size:11px;
+}
+
+.box b{
+    color:#f1f5f9;
+    font-size:14px;
+}
+
+.timeline{
+    margin-top:16px;
+    font-size:14px;
+    color:#cbd5e1;
+    line-height:1.8;
+    background:linear-gradient(135deg,#1e293b,#0f172a);
+    border:1px solid #334155;
+    padding:16px;
+    border-radius:8px;
+}
+
+.actions{
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+}
+
+button{
+    flex:1;
+    padding:12px;
+    font-size:15px;
+    font-weight:600;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.btn-danger{
+    background:#ef4444;
+    color:#fff;
+}
+
+.btn-danger:hover{
+    background:#dc2626;
+    box-shadow:0 4px 12px rgba(239,68,68,.4);
+}
+
+.btn-primary{
+    background:linear-gradient(135deg,#0ea5e9,#06b6d4);
+    color:#fff;
+}
+
+.btn-primary:hover{
+    box-shadow:0 4px 12px rgba(14,165,233,.4);
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGO -->
+<div class="logo">
+    <svg class="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+    <div class="logo-text">
+        <h1>Alerts</h1>
+        <p>Maritime Security</p>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- LEFT -->
+<div class="left">
+    <div class="alert critical active" onclick="show(0,this)">
+        <strong>Unidentified Submarine</strong><br>
+        <small>North Sector • 2 mins ago</small>
+    </div>
+
+    <div class="alert high" onclick="show(1,this)">
+        <strong>Suspicious Vessel</strong><br>
+        <small>South Sector • 15 mins ago</small>
+    </div>
+
+    <div class="alert medium" onclick="show(2,this)">
+        <strong>Unauthorized Diver</strong><br>
+        <small>East Sector • 1 hour ago</small>
+    </div>
+</div>
+
+<!-- RIGHT -->
+<div class="right" id="details">
+    <div class="details">
+        <h2>Unidentified Submarine</h2>
+        <small>Severity: <b style="color:#ef4444">Critical</b></small>
+
+        <div class="meta">
+            <div class="box"><small>Camera</small><br><b>Camera 1</b></div>
+            <div class="box"><small>Location</small><br><b>North Sector</b></div>
+            <div class="box"><small>Object</small><br><b>Submarine</b></div>
+            <div class="box"><small>Status</small><br><b>Active</b></div>
+        </div>
+
+        <div class="timeline">
+            • Object detected<br>
+            • Classified as hostile<br>
+            • Alert sent to command
+        </div>
+
+        <div class="actions">
+            <button class="btn-danger">Engage Response</button>
+            <button class="btn-primary">Mark Resolved</button>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+const data=[
+{title:"Unidentified Submarine",severity:"Critical",camera:"Camera 1",loc:"North Sector",obj:"Submarine"},
+{title:"Suspicious Vessel",severity:"High",camera:"Camera 3",loc:"South Sector",obj:"Vessel"},
+{title:"Unauthorized Diver",severity:"Medium",camera:"Camera 2",loc:"East Sector",obj:"Diver"}
+];
+
+function show(i,el){
+document.querySelectorAll('.alert').forEach(a=>a.classList.remove('active'));
+el.classList.add('active');
+
+const severityColor = data[i].severity === 'Critical' ? '#ef4444' : data[i].severity === 'High' ? '#f97316' : '#eab308';
+
+document.getElementById('details').innerHTML=`
+<div class="details">
+<h2>${data[i].title}</h2>
+<small>Severity: <b style="color:${severityColor}">${data[i].severity}</b></small>
+
+<div class="meta">
+<div class="box"><small>Camera</small><br><b>${data[i].camera}</b></div>
+<div class="box"><small>Location</small><br><b>${data[i].loc}</b></div>
+<div class="box"><small>Object</small><br><b>${data[i].obj}</b></div>
+<div class="box"><small>Status</small><br><b>Active</b></div>
+</div>
+
+<div class="timeline">
+• Object detected<br>
+• Classified as hostile<br>
+• Alert sent to command
+</div>
+
+<div class="actions">
+<button class="btn-danger">Engage Response</button>
+<button class="btn-primary">Mark Resolved</button>
+</div>
+</div>`;
+}
+</script>
+
+</body>
+</html>

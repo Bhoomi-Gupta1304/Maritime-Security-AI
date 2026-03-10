@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - Maritime Security Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: radial-gradient(ellipse at top, #0f1c30, #050b16 70%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .navbar {
+            padding: 24px 30px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text h1 {
+            font-size: 15px;
+            color: #f1f5f9;
+        }
+
+        .logo-text p {
+            font-size: 11px;
+            color: #06b6d4;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0 30px 24px 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .upload-section {
+            background: linear-gradient(135deg, rgba(30,41,59,.95), rgba(15,23,42,.95));
+            border: 2px dashed #334155;
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+            cursor: pointer;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .upload-section:hover {
+            border-color: #0ea5e9;
+        }
+
+        .upload-section.dragover {
+            border-color: #06b6d4;
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        .upload-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(14, 165, 233, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .upload-icon svg {
+            width: 28px;
+            height: 28px;
+            color: #0ea5e9;
+        }
+
+        .upload-section h3 {
+            font-size: 18px;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .upload-section p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+        }
+
+        .upload-formats {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 18px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .upload-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .option-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-card:hover {
+            border-color: #0ea5e9;
+            transform: translateY(-2px);
+        }
+
+        .option-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(14, 165, 233, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .option-icon svg {
+            width: 20px;
+            height: 20px;
+            color: #0ea5e9;
+        }
+
+        .option-card h4 {
+            font-size: 15px;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .option-card p {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .file-list {
+            margin-top: 28px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-list h3 {
+            font-size: 17px;
+            color: #f1f5f9;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-item {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .file-item:hover {
+            border-color: #0ea5e9;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(14, 165, 233, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .file-icon svg {
+            width: 20px;
+            height: 20px;
+            color: #0ea5e9;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 3px;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .file-progress {
+            width: 100%;
+            height: 4px;
+            background: #334155;
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .file-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .file-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 90px;
+        }
+
+        .file-status.uploading {
+            color: #0ea5e9;
+        }
+
+        .file-status.complete {
+            color: #22c55e;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 30px;
+            height: 30px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            border-color: #0ea5e9;
+            background: rgba(14, 165, 233, 0.2);
+        }
+
+        .icon-btn svg {
+            width: 15px;
+            height: 15px;
+            color: #94a3b8;
+        }
+
+        .icon-btn:hover svg {
+            color: #0ea5e9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <svg class="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <div class="logo-text">
+                <h1>Upload Files</h1>
+                <p>Maritime Security</p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h2>Upload Media Files</h2>
+            <p>Upload underwater footage for AI-powered enhancement and threat detection</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+            </div>
+            <h3>Drag & Drop Files Here</h3>
+            <p>or click to browse from your computer</p>
+            <div class="upload-formats">
+                MP4, AVI, MOV, MKV, JPG, PNG (Max 500MB)
+            </div>
+            <button class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Select Files
+            </button>
+            <input type="file" id="fileInput" multiple accept="video/*,image/*">
+        </div>
+
+        <!-- Upload Options -->
+        <div class="upload-options">
+            <div class="option-card">
+                <div class="option-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <h4>Live Camera Feed</h4>
+                <p>Connect to real-time underwater camera streams</p>
+            </div>
+
+            <div class="option-card">
+                <div class="option-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                    </svg>
+                </div>
+                <h4>Cloud Storage</h4>
+                <p>Import files from connected cloud services</p>
+            </div>
+
+            <div class="option-card">
+                <div class="option-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                </div>
+                <h4>URL Import</h4>
+                <p>Import footage from external URLs</p>
+            </div>
+
+            <div class="option-card">
+                <div class="option-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                    </svg>
+                </div>
+                <h4>Batch Upload</h4>
+                <p>Upload multiple files for bulk processing</p>
+            </div>
+        </div>
+
+        <!-- File List -->
+        <div class="file-list hidden" id="fileList">
+            <h3>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Uploaded Files
+            </h3>
+            <div id="fileItems"></div>
+        </div>
+    </div>
+
+    <script>
+        var dropZone = document.getElementById('dropZone');
+        var fileInput = document.getElementById('fileInput');
+        var fileList = document.getElementById('fileList');
+        var fileItems = document.getElementById('fileItems');
+        var uploadedFiles = [];
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            var dt = e.dataTransfer;
+            var files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            for (var i = 0; i < files.length; i++) {
+                uploadFile(files[i]);
+            }
+        }
+
+        function uploadFile(file) {
+            var fileObj = {
+                name: file.name,
+                size: formatFileSize(file.size),
+                type: file.type.startsWith('video') ? 'video' : 'image',
+                progress: 0,
+                status: 'uploading'
+            };
+
+            uploadedFiles.push(fileObj);
+            displayFile(fileObj, uploadedFiles.length - 1);
+
+            var progress = 0;
+            var interval = setInterval(function() {
+                progress += Math.random() * 30;
+                if (progress >= 100) {
+                    progress = 100;
+                    fileObj.progress = 100;
+                    fileObj.status = 'complete';
+                    clearInterval(interval);
+                }
+                fileObj.progress = Math.floor(progress);
+                updateFileDisplay(uploadedFiles.length - 1);
+            }, 500);
+        }
+
+        function displayFile(fileObj, index) {
+            fileList.classList.remove('hidden');
+
+            var fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.id = 'file-' + index;
+
+            var iconType = fileObj.type === 'video' ? 
+                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' :
+                '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+
+            fileItem.innerHTML = '<div class="file-icon">' + iconType + '</div>' +
+                '<div class="file-info">' +
+                    '<div class="file-name">' + fileObj.name + '</div>' +
+                    '<div class="file-meta">' + fileObj.size + ' • ' + fileObj.type + '</div>' +
+                    '<div class="file-progress"><div class="file-progress-bar" id="progress-' + index + '" style="width: 0%"></div></div>' +
+                '</div>' +
+                '<div class="file-status uploading" id="status-' + index + '">Uploading...</div>' +
+                '<div class="file-actions">' +
+                    '<button class="icon-btn" onclick="viewFile(' + index + ')">' +
+                        '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>' +
+                    '</button>' +
+                    '<button class="icon-btn" onclick="removeFile(' + index + ')">' +
+                        '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+                    '</button>' +
+                '</div>';
+
+            fileItems.appendChild(fileItem);
+        }
+
+        function updateFileDisplay(index) {
+            var fileObj = uploadedFiles[index];
+            var progressBar = document.getElementById('progress-' + index);
+            var statusEl = document.getElementById('status-' + index);
+
+            if (progressBar) {
+                progressBar.style.width = fileObj.progress + '%';
+            }
+
+            if (statusEl) {
+                if (fileObj.status === 'complete') {
+                    statusEl.className = 'file-status complete';
+                    statusEl.textContent = 'Complete';
+                } else {
+                    statusEl.textContent = fileObj.progress + '%';
+                }
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function viewFile(index) {
+            alert('Viewing file: ' + uploadedFiles[index].name);
+        }
+
+        function removeFile(index) {
+            var fileItem = document.getElementById('file-' + index);
+            if (fileItem) {
+                fileItem.remove();
+            }
+            uploadedFiles.splice(index, 1);
+            
+            if (uploadedFiles.length === 0) {
+                fileList.classList.add('hidden');
+            }
+        }
+        <!-- Add this script section to your HTML file, replacing the existing script -->
+
+    var dropZone = document.getElementById('dropZone');
+    var fileInput = document.getElementById('fileInput');
+    var fileList = document.getElementById('fileList');
+    var fileItems = document.getElementById('fileItems');
+    var uploadedFiles = [];
+    var API_URL = 'http://localhost:3000/api';
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(function(eventName) {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight() {
+        dropZone.classList.remove('dragover');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        var dt = e.dataTransfer;
+        var files = dt.files;
+        handleFiles(files);
+    }
+
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+        for (var i = 0; i < files.length; i++) {
+            uploadFile(files[i]);
+        }
+    }
+
+    async function uploadFile(file) {
+        var fileObj = {
+            name: file.name,
+            size: formatFileSize(file.size),
+            type: file.type.startsWith('video') ? 'video' : 'image',
+            progress: 0,
+            status: 'uploading',
+            fileId: null
+        };
+
+        var index = uploadedFiles.length;
+        uploadedFiles.push(fileObj);
+        displayFile(fileObj, index);
+
+        try {
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    var percentComplete = Math.round((e.loaded / e.total) * 100);
+                    fileObj.progress = percentComplete;
+                    updateFileDisplay(index);
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    fileObj.fileId = response.fileId;
+                    fileObj.status = 'processing';
+                    updateFileDisplay(index);
+                    
+                    // Poll for processing completion
+                    pollFileStatus(response.fileId, index);
+                } else {
+                    fileObj.status = 'error';
+                    updateFileDisplay(index);
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                fileObj.status = 'error';
+                updateFileDisplay(index);
+            });
+
+            xhr.open('POST', API_URL + '/upload');
+            xhr.send(formData);
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            fileObj.status = 'error';
+            updateFileDisplay(index);
+        }
+    }
+
+    function pollFileStatus(fileId, index) {
+        var pollInterval = setInterval(async function() {
+            try {
+                var response = await fetch(API_URL + '/file/' + fileId);
+                var data = await response.json();
+                
+                if (data.status === 'completed') {
+                    uploadedFiles[index].status = 'complete';
+                    uploadedFiles[index].progress = 100;
+                    uploadedFiles[index].analysis = data.analysis;
+                    updateFileDisplay(index);
+                    clearInterval(pollInterval);
+                    
+                    // Show analysis results
+                    if (data.analysis) {
+                        showAnalysis(index, data.analysis);
+                    }
+                } else if (data.status === 'failed') {
+                    uploadedFiles[index].status = 'error';
+                    updateFileDisplay(index);
+                    clearInterval(pollInterval);
+                }
+            } catch (error) {
+                console.error('Polling error:', error);
+            }
+        }, 2000);
+    }
+
+    function displayFile(fileObj, index) {
+        fileList.classList.remove('hidden');
+
+        var fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.id = 'file-' + index;
+
+        var iconType = fileObj.type === 'video' ? 
+            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' :
+            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+
+        fileItem.innerHTML = '<div class="file-icon">' + iconType + '</div>' +
+            '<div class="file-info">' +
+                '<div class="file-name">' + fileObj.name + '</div>' +
+                '<div class="file-meta">' + fileObj.size + ' • ' + fileObj.type + '</div>' +
+                '<div class="file-progress"><div class="file-progress-bar" id="progress-' + index + '" style="width: 0%"></div></div>' +
+                '<div id="analysis-' + index + '" class="file-analysis"></div>' +
+            '</div>' +
+            '<div class="file-status uploading" id="status-' + index + '">Uploading...</div>' +
+            '<div class="file-actions">' +
+                '<button class="icon-btn" onclick="viewFile(' + index + ')">' +
+                    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>' +
+                '</button>' +
+                '<button class="icon-btn" onclick="downloadFile(' + index + ')">' +
+                    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>' +
+                '</button>' +
+                '<button class="icon-btn" onclick="removeFile(' + index + ')">' +
+                    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+                '</button>' +
+            '</div>';
+
+        fileItems.appendChild(fileItem);
+    }
+
+    function showAnalysis(index, analysis) {
+        var analysisEl = document.getElementById('analysis-' + index);
+        if (analysisEl && analysis) {
+            var threats = analysis.threats && analysis.threats.length > 0 
+                ? '<span style="color: #ef4444;">⚠ Threats detected</span>' 
+                : '<span style="color: #22c55e;">✓ No threats</span>';
+            
+            analysisEl.innerHTML = '<div style="font-size: 11px; margin-top: 6px; color: #94a3b8;">' +
+                'Visibility: ' + (analysis.visibilityScore || 'N/A') + '% | ' +
+                'Noise: ' + (analysis.noiseLevel || 'Low') + ' | ' +
+                threats +
+            '</div>';
+        }
+    }
+
+    function updateFileDisplay(index) {
+        var fileObj = uploadedFiles[index];
+        var progressBar = document.getElementById('progress-' + index);
+        var statusEl = document.getElementById('status-' + index);
+
+        if (progressBar) {
+            progressBar.style.width = fileObj.progress + '%';
+        }
+
+        if (statusEl) {
+            if (fileObj.status === 'complete') {
+                statusEl.className = 'file-status complete';
+                statusEl.textContent = 'Complete';
+            } else if (fileObj.status === 'processing') {
+                statusEl.className = 'file-status uploading';
+                statusEl.textContent = 'Processing...';
+            } else if (fileObj.status === 'error') {
+                statusEl.className = 'file-status';
+                statusEl.style.color = '#ef4444';
+                statusEl.textContent = 'Error';
+            } else {
+                statusEl.textContent = fileObj.progress + '%';
+            }
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        var k = 1024;
+        var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    function viewFile(index) {
+        var fileObj = uploadedFiles[index];
+        if (fileObj.fileId) {
+            window.open(API_URL.replace('/api', '') + '/uploads/processed/enhanced-' + fileObj.fileId, '_blank');
+        }
+    }
+
+    async function downloadFile(index) {
+        var fileObj = uploadedFiles[index];
+        if (fileObj.fileId) {
+            window.location.href = API_URL + '/download/' + fileObj.fileId;
+        }
+    }
+
+    async function removeFile(index) {
+        var fileObj = uploadedFiles[index];
+        if (fileObj.fileId) {
+            try {
+                await fetch(API_URL + '/file/' + fileObj.fileId, {
+                    method: 'DELETE'
+                });
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+        
+        var fileItem = document.getElementById('file-' + index);
+        if (fileItem) {
+            fileItem.remove();
+        }
+        uploadedFiles.splice(index, 1);
+        
+        if (uploadedFiles.length === 0) {
+            fileList.classList.add('hidden');
+        }
+    }
+
+    </script>
+</body>
+</html>
