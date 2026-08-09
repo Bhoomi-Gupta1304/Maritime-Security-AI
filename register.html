@@ -424,10 +424,15 @@
                 </label>
             </div>
             
-                <button type="submit" class="btn" id="register-btn">
-                <span class="btn-text">Create Account</span>
-                <div class="loading-spinner"></div>
-            </button>
+            <div style="display: flex; gap: 15px; margin-top: 10px;">
+                <button type="submit" class="btn" id="register-btn" style="margin-top: 0; flex: 1;">
+                    <span class="btn-text">Create Account</span>
+                    <div class="loading-spinner"></div>
+                </button>
+                <button type="button" class="btn" onclick="window.location.href='login.html'" style="margin-top: 0; flex: 1; background: transparent; border: 2px solid #64ffda; color: #64ffda;">
+                    <span class="btn-text">Login</span>
+                </button>
+            </div>
            
             
         </form>
@@ -504,7 +509,7 @@
         }
 
         // Registration form submission
-        document.getElementById('register-form').addEventListener('submit', function(e) {
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const firstName = document.getElementById('first-name').value.trim();
@@ -560,30 +565,33 @@
                 return;
             }
 
-            // Simulate registration process
+            // Registration process
             registerBtn.classList.add('loading');
             registerBtn.disabled = true;
 
-            setTimeout(() => {
-    registerBtn.classList.remove('loading');
-    registerBtn.disabled = false;
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
 
-    showSuccess('Registration successful! Redirecting to verification...');
-
-    setTimeout(() => {
-        alert(
-            'Account Created Successfully!\n\n' +
-            'Verification email sent to: ' + email + '\n\n' +
-            'Please check your email to activate your account.'
-        );
-
-        // ✅ REDIRECT (FIXED SPELLING)
-        window.location.replace("verfication.html");
-
-    }, 2000);
-
-}, 2000);
-
+                if (response.ok) {
+                    showSuccess('Registration successful! Redirecting to dashboard...');
+                    setTimeout(() => {
+                        window.location.replace('/dashboard.html');
+                    }, 1500);
+                } else {
+                    const text = await response.text();
+                    showError(text || 'Registration failed');
+                    registerBtn.classList.remove('loading');
+                    registerBtn.disabled = false;
+                }
+            } catch (error) {
+                showError('Network error occurred');
+                registerBtn.classList.remove('loading');
+                registerBtn.disabled = false;
+            }
         });
     </script>
 </body>

@@ -395,7 +395,7 @@
                 </svg>
                 Select Files
             </button>
-            <input type="file" id="fileInput" multiple accept="video/*,image/*">
+            <input type="file" id="fileInput" multiple accept="video/*,image/*" hidden>
         </div>
 
         <!-- Upload Options -->
@@ -499,35 +499,17 @@
         });
 
         function handleFiles(files) {
-            for (var i = 0; i < files.length; i++) {
-                uploadFile(files[i]);
+            if (files.length > 0) {
+                uploadAndDetectFile(files[0]);
             }
         }
 
-        function uploadFile(file) {
-            var fileObj = {
-                name: file.name,
-                size: formatFileSize(file.size),
-                type: file.type.startsWith('video') ? 'video' : 'image',
-                progress: 0,
-                status: 'uploading'
-            };
-
-            uploadedFiles.push(fileObj);
-            displayFile(fileObj, uploadedFiles.length - 1);
-
-            var progress = 0;
-            var interval = setInterval(function() {
-                progress += Math.random() * 30;
-                if (progress >= 100) {
-                    progress = 100;
-                    fileObj.progress = 100;
-                    fileObj.status = 'complete';
-                    clearInterval(interval);
-                }
-                fileObj.progress = Math.floor(progress);
-                updateFileDisplay(uploadedFiles.length - 1);
-            }, 500);
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
 
         function displayFile(fileObj, index) {
@@ -546,12 +528,10 @@
                     '<div class="file-name">' + fileObj.name + '</div>' +
                     '<div class="file-meta">' + fileObj.size + ' • ' + fileObj.type + '</div>' +
                     '<div class="file-progress"><div class="file-progress-bar" id="progress-' + index + '" style="width: 0%"></div></div>' +
+                    '<div id="analysis-' + index + '" class="file-analysis" style="margin-top: 10px;"></div>' +
                 '</div>' +
                 '<div class="file-status uploading" id="status-' + index + '">Uploading...</div>' +
                 '<div class="file-actions">' +
-                    '<button class="icon-btn" onclick="viewFile(' + index + ')">' +
-                        '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>' +
-                    '</button>' +
                     '<button class="icon-btn" onclick="removeFile(' + index + ')">' +
                         '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
                     '</button>' +
@@ -560,35 +540,96 @@
             fileItems.appendChild(fileItem);
         }
 
-        function updateFileDisplay(index) {
+        function updateFileDisplay(index, status, message) {
             var fileObj = uploadedFiles[index];
+            fileObj.status = status;
             var progressBar = document.getElementById('progress-' + index);
             var statusEl = document.getElementById('status-' + index);
 
             if (progressBar) {
-                progressBar.style.width = fileObj.progress + '%';
+                if (status === 'uploading') progressBar.style.width = '30%';
+                else if (status === 'processing') progressBar.style.width = '70%';
+                else if (status === 'complete') progressBar.style.width = '100%';
+                else if (status === 'error') progressBar.style.width = '100%';
             }
 
             if (statusEl) {
-                if (fileObj.status === 'complete') {
+                if (status === 'complete') {
                     statusEl.className = 'file-status complete';
                     statusEl.textContent = 'Complete';
+                } else if (status === 'error') {
+                    statusEl.className = 'file-status';
+                    statusEl.style.color = '#ef4444';
+                    statusEl.textContent = message || 'Error';
                 } else {
-                    statusEl.textContent = fileObj.progress + '%';
+                    statusEl.className = 'file-status uploading';
+                    statusEl.textContent = message || 'Processing...';
                 }
             }
         }
 
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            var k = 1024;
-            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            var i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-        }
+        async function uploadAndDetectFile(file) {
+            var index = uploadedFiles.length;
+            var fileObj = {
+                name: file.name,
+                size: formatFileSize(file.size),
+                type: file.type.startsWith('video') ? 'video' : 'image',
+                status: 'uploading'
+            };
 
-        function viewFile(index) {
-            alert('Viewing file: ' + uploadedFiles[index].name);
+            uploadedFiles.push(fileObj);
+            displayFile(fileObj, index);
+            updateFileDisplay(index, 'uploading', 'Uploading...');
+
+            try {
+                // Step 1: Upload
+                const formData = new FormData();
+                formData.append("image", file);
+
+                const uploadRes = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                
+                if (!uploadRes.ok) {
+                    throw new Error("Upload failed");
+                }
+
+                // Step 2: Detect
+                updateFileDisplay(index, 'processing', 'Running Detection...');
+                const detectRes = await fetch("/detect", {
+                    method: "POST"
+                });
+
+                if (!detectRes.ok) {
+                    throw new Error("Detection failed");
+                }
+
+                const data = await detectRes.json();
+                
+                // Step 3: Complete
+                updateFileDisplay(index, 'complete', 'Complete');
+                
+                // Display the result inline
+                if (data.result) {
+                    const analysisEl = document.getElementById('analysis-' + index);
+                    const cacheBuster = "?t=" + Date.now();
+                    
+                    let html = '<img src="' + data.result + cacheBuster + '" alt="Detection Result" style="max-width: 100%; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px;"/>';
+                    
+                    if (data.detected && data.detected.length > 0) {
+                        const labels = data.detected.map(item => item.label || item);
+                        html += '<div style="font-size: 12px; color: #22c55e;"><strong>Detected:</strong> ' + labels.join(', ') + '</div>';
+                    } else {
+                        html += '<div style="font-size: 12px; color: #ef4444;">No objects detected in this image.</div>';
+                    }
+                    
+                    analysisEl.innerHTML = html;
+                }
+            } catch (err) {
+                console.error(err);
+                updateFileDisplay(index, 'error', err.message || 'Error occurred');
+            }
         }
 
         function removeFile(index) {
@@ -596,271 +637,13 @@
             if (fileItem) {
                 fileItem.remove();
             }
-            uploadedFiles.splice(index, 1);
+            uploadedFiles[index] = null; // nullify to preserve indexes
             
-            if (uploadedFiles.length === 0) {
+            // If all are null, hide the list
+            if (uploadedFiles.every(f => f === null)) {
                 fileList.classList.add('hidden');
             }
         }
-        <!-- Add this script section to your HTML file, replacing the existing script -->
-
-    var dropZone = document.getElementById('dropZone');
-    var fileInput = document.getElementById('fileInput');
-    var fileList = document.getElementById('fileList');
-    var fileItems = document.getElementById('fileItems');
-    var uploadedFiles = [];
-    var API_URL = 'http://localhost:3000/api';
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(function(eventName) {
-        dropZone.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(function(eventName) {
-        dropZone.addEventListener(eventName, unhighlight, false);
-    });
-
-    function highlight() {
-        dropZone.classList.add('dragover');
-    }
-
-    function unhighlight() {
-        dropZone.classList.remove('dragover');
-    }
-
-    dropZone.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-        var dt = e.dataTransfer;
-        var files = dt.files;
-        handleFiles(files);
-    }
-
-    fileInput.addEventListener('change', function() {
-        handleFiles(this.files);
-    });
-
-    function handleFiles(files) {
-        for (var i = 0; i < files.length; i++) {
-            uploadFile(files[i]);
-        }
-    }
-
-    async function uploadFile(file) {
-        var fileObj = {
-            name: file.name,
-            size: formatFileSize(file.size),
-            type: file.type.startsWith('video') ? 'video' : 'image',
-            progress: 0,
-            status: 'uploading',
-            fileId: null
-        };
-
-        var index = uploadedFiles.length;
-        uploadedFiles.push(fileObj);
-        displayFile(fileObj, index);
-
-        try {
-            var formData = new FormData();
-            formData.append('file', file);
-
-            var xhr = new XMLHttpRequest();
-
-            xhr.upload.addEventListener('progress', function(e) {
-                if (e.lengthComputable) {
-                    var percentComplete = Math.round((e.loaded / e.total) * 100);
-                    fileObj.progress = percentComplete;
-                    updateFileDisplay(index);
-                }
-            });
-
-            xhr.addEventListener('load', function() {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    fileObj.fileId = response.fileId;
-                    fileObj.status = 'processing';
-                    updateFileDisplay(index);
-                    
-                    // Poll for processing completion
-                    pollFileStatus(response.fileId, index);
-                } else {
-                    fileObj.status = 'error';
-                    updateFileDisplay(index);
-                }
-            });
-
-            xhr.addEventListener('error', function() {
-                fileObj.status = 'error';
-                updateFileDisplay(index);
-            });
-
-            xhr.open('POST', API_URL + '/upload');
-            xhr.send(formData);
-
-        } catch (error) {
-            console.error('Upload error:', error);
-            fileObj.status = 'error';
-            updateFileDisplay(index);
-        }
-    }
-
-    function pollFileStatus(fileId, index) {
-        var pollInterval = setInterval(async function() {
-            try {
-                var response = await fetch(API_URL + '/file/' + fileId);
-                var data = await response.json();
-                
-                if (data.status === 'completed') {
-                    uploadedFiles[index].status = 'complete';
-                    uploadedFiles[index].progress = 100;
-                    uploadedFiles[index].analysis = data.analysis;
-                    updateFileDisplay(index);
-                    clearInterval(pollInterval);
-                    
-                    // Show analysis results
-                    if (data.analysis) {
-                        showAnalysis(index, data.analysis);
-                    }
-                } else if (data.status === 'failed') {
-                    uploadedFiles[index].status = 'error';
-                    updateFileDisplay(index);
-                    clearInterval(pollInterval);
-                }
-            } catch (error) {
-                console.error('Polling error:', error);
-            }
-        }, 2000);
-    }
-
-    function displayFile(fileObj, index) {
-        fileList.classList.remove('hidden');
-
-        var fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
-        fileItem.id = 'file-' + index;
-
-        var iconType = fileObj.type === 'video' ? 
-            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' :
-            '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
-
-        fileItem.innerHTML = '<div class="file-icon">' + iconType + '</div>' +
-            '<div class="file-info">' +
-                '<div class="file-name">' + fileObj.name + '</div>' +
-                '<div class="file-meta">' + fileObj.size + ' • ' + fileObj.type + '</div>' +
-                '<div class="file-progress"><div class="file-progress-bar" id="progress-' + index + '" style="width: 0%"></div></div>' +
-                '<div id="analysis-' + index + '" class="file-analysis"></div>' +
-            '</div>' +
-            '<div class="file-status uploading" id="status-' + index + '">Uploading...</div>' +
-            '<div class="file-actions">' +
-                '<button class="icon-btn" onclick="viewFile(' + index + ')">' +
-                    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>' +
-                '</button>' +
-                '<button class="icon-btn" onclick="downloadFile(' + index + ')">' +
-                    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>' +
-                '</button>' +
-                '<button class="icon-btn" onclick="removeFile(' + index + ')">' +
-                    '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
-                '</button>' +
-            '</div>';
-
-        fileItems.appendChild(fileItem);
-    }
-
-    function showAnalysis(index, analysis) {
-        var analysisEl = document.getElementById('analysis-' + index);
-        if (analysisEl && analysis) {
-            var threats = analysis.threats && analysis.threats.length > 0 
-                ? '<span style="color: #ef4444;">⚠ Threats detected</span>' 
-                : '<span style="color: #22c55e;">✓ No threats</span>';
-            
-            analysisEl.innerHTML = '<div style="font-size: 11px; margin-top: 6px; color: #94a3b8;">' +
-                'Visibility: ' + (analysis.visibilityScore || 'N/A') + '% | ' +
-                'Noise: ' + (analysis.noiseLevel || 'Low') + ' | ' +
-                threats +
-            '</div>';
-        }
-    }
-
-    function updateFileDisplay(index) {
-        var fileObj = uploadedFiles[index];
-        var progressBar = document.getElementById('progress-' + index);
-        var statusEl = document.getElementById('status-' + index);
-
-        if (progressBar) {
-            progressBar.style.width = fileObj.progress + '%';
-        }
-
-        if (statusEl) {
-            if (fileObj.status === 'complete') {
-                statusEl.className = 'file-status complete';
-                statusEl.textContent = 'Complete';
-            } else if (fileObj.status === 'processing') {
-                statusEl.className = 'file-status uploading';
-                statusEl.textContent = 'Processing...';
-            } else if (fileObj.status === 'error') {
-                statusEl.className = 'file-status';
-                statusEl.style.color = '#ef4444';
-                statusEl.textContent = 'Error';
-            } else {
-                statusEl.textContent = fileObj.progress + '%';
-            }
-        }
-    }
-
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        var k = 1024;
-        var sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        var i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    }
-
-    function viewFile(index) {
-        var fileObj = uploadedFiles[index];
-        if (fileObj.fileId) {
-            window.open(API_URL.replace('/api', '') + '/uploads/processed/enhanced-' + fileObj.fileId, '_blank');
-        }
-    }
-
-    async function downloadFile(index) {
-        var fileObj = uploadedFiles[index];
-        if (fileObj.fileId) {
-            window.location.href = API_URL + '/download/' + fileObj.fileId;
-        }
-    }
-
-    async function removeFile(index) {
-        var fileObj = uploadedFiles[index];
-        if (fileObj.fileId) {
-            try {
-                await fetch(API_URL + '/file/' + fileObj.fileId, {
-                    method: 'DELETE'
-                });
-            } catch (error) {
-                console.error('Delete error:', error);
-            }
-        }
-        
-        var fileItem = document.getElementById('file-' + index);
-        if (fileItem) {
-            fileItem.remove();
-        }
-        uploadedFiles.splice(index, 1);
-        
-        if (uploadedFiles.length === 0) {
-            fileList.classList.add('hidden');
-        }
-    }
-
     </script>
 </body>
 </html>

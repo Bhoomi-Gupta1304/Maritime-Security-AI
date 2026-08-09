@@ -335,13 +335,18 @@
                     </select>
                 </div>
                 
+                <div id="errorMessage" style="display: none; background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid rgba(239, 68, 68, 0.3);"></div>
+                
                 <button class="btn btn-primary" onclick="handleLogin()">Login to Dashboard</button>
 
-                <div class="text-center" style="margin-top: 16px;">
+                <div class="text-center" style="margin-top: 16px; display: flex; justify-content: center; gap: 20px; align-items: center;">
                     <a href="resetpass.html">
-                        <button class="link-btn" >Forgot password?</button>
+                        <button type="button" class="link-btn" >Forgot password?</button>
                     </a>
-                    
+                    <span style="color: #64748b;">|</span>
+                    <a href="register.html">
+                        <button type="button" class="link-btn" >Register</button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -354,20 +359,59 @@
     </div>
 
     <script>
-        function handleLogin() {
+        async function handleLogin() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const role = document.getElementById('role').value;
+            const btn = document.querySelector('.btn-primary');
+            const errorDiv = document.getElementById('errorMessage');
             
             if (!username || !password) {
-                alert('Please fill in all fields');
+                errorDiv.textContent = 'Please fill in all fields';
+                errorDiv.style.display = 'block';
                 return;
             }
-            else{
-                window.location.href = "verfication.html";
-            }
             
-            alert('Login successful! Redirecting to dashboard...\n\nUsername: ' + username + '\nRole: ' + role.toUpperCase());
+            errorDiv.style.display = 'none';
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+            btn.style.opacity = '0.7';
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: username, password })
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    const text = await response.text();
+                    if (text === "Invalid Login" || text === "Error occured") {
+                        errorDiv.textContent = text;
+                        errorDiv.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                        btn.style.opacity = '1';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
+                } else {
+                    const text = await response.text();
+                    errorDiv.textContent = text || 'Login failed';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    btn.style.opacity = '1';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error occurred';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = originalText;
+                btn.style.opacity = '1';
+            }
         }
     </script>
 </body>

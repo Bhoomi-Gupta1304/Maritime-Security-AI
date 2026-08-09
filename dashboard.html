@@ -691,6 +691,10 @@
 
             <!-- Feed Container -->
             <div class="feed-container" id="feedContainer">
+                 <div style="margin:20px;">
+                    <h3 style="color:white;">Detection Result</h3>
+                    <img id="resultImg" style="width:400px; border-radius:10px;">
+                </div>
                 <div class="feed-panel">
                     <div class="feed-video">
                         <div class="feed-placeholder">
@@ -772,6 +776,15 @@
                 }
             });
         });
+        // 🔥 SHOW DETECTION RESULT IMAGE
+        const img = localStorage.getItem("resultImage");
+
+        if (img) {
+            const imageElement = document.getElementById("resultImg");
+            if (imageElement) {
+                imageElement.src = "http://localhost:3000" + img;
+            }
+        }
     </script>
 </body>
 </html>
